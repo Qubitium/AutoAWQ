@@ -150,7 +150,7 @@ class BaseAWQForCausalLM(nn.Module):
         model = AutoAWQForCausalLM.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(model_path)
 
-        quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "version": "GEMM" }
+        quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "format": "gemm", "method": "awq" }
         model.quantize(tokenizer, quant_config)
         ```
         """

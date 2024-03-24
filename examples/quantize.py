@@ -3,7 +3,7 @@ from transformers import AutoTokenizer
 
 model_path = 'mistralai/Mistral-7B-Instruct-v0.2'
 quant_path = 'mistral-instruct-v0.2-awq'
-quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "version": "GEMM" }
+quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "format": "gemm", "method": "awq" }
 
 # Load model
 model = AutoAWQForCausalLM.from_pretrained(

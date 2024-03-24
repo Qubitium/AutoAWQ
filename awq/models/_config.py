@@ -15,7 +15,7 @@ def _normalize_dict(original_cfg: Dict[str: Any]):
 
     cfg["format"] = cfg.get("format", cfg.get("version", "gemm")).lower()
     if cfg["format"] not in _FORMATS:
-        raise TypeError(f"Unsupported quant format: {cfg.format}")
+        raise TypeError(f"Unknown quant format: {cfg.format}")
 
     return cfg
 

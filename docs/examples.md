@@ -17,7 +17,7 @@ from transformers import AutoTokenizer
 
 model_path = 'mistralai/Mistral-7B-Instruct-v0.2'
 quant_path = 'mistral-instruct-v0.2-awq'
-quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "version": "GEMM" }
+quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "format": "gemm", "method": "awq" }
 
 # Load model
 model = AutoAWQForCausalLM.from_pretrained(
@@ -47,7 +47,7 @@ from transformers import AutoTokenizer
 
 model_path = 'lmsys/vicuna-7b-v1.5'
 quant_path = 'vicuna-7b-v1.5-awq'
-quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "version": "GEMM" }
+quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 4, "format": "gemm", "method": "awq" }
 
 # Load model
 model = AutoAWQForCausalLM.from_pretrained(model_path)
@@ -100,7 +100,7 @@ from transformers import AutoTokenizer
 model_path = 'mistralai/Mistral-7B-v0.1'
 quant_path = 'mistral-awq'
 llama_cpp_path = '/workspace/llama.cpp'
-quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 6, "version": "GEMM" }
+quant_config = { "zero_point": True, "q_group_size": 128, "w_bit": 6, "format": "gemm", "method": "awq" }
 
 # Load model
 # NOTE: pass safetensors=True to load safetensors
