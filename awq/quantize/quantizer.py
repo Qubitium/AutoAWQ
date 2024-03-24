@@ -33,7 +33,7 @@ class AwqQuantizer:
         w_bit,
         group_size,
         zero_point,
-        version,
+        format,
         calib_data,
         split,
         text_column,
@@ -47,7 +47,7 @@ class AwqQuantizer:
         self.w_bit = w_bit
         self.group_size = group_size
         self.zero_point = zero_point
-        self.version = version
+        self.format = format
         self.calib_data = calib_data
         self.split = split
         self.text_column = text_column
@@ -193,22 +193,22 @@ class AwqQuantizer:
                 linear_layer.weight.data
             )
 
-            if self.version == "gemm":
+            if self.format == "gemm":
                 scales = scales.t().contiguous()
                 zeros = zeros.t().contiguous()
                 q_linear_module = WQLinear_GEMM
 
-            elif self.version == "gemv":
+            elif self.format == "gemv":
                 q_linear_module = WQLinear_GEMV
 
-            elif self.version == "marlin":
+            elif self.format == "marlin":
                 q_linear_module = WQLinear_Marlin
             
-            elif self.version == "gemv_fast":
+            elif self.format == "gemv_fast":
                 q_linear_module = WQLinear_GEMVFast
 
             else:
-                raise ValueError(f"Unknown version {self.version}")
+                raise ValueError(f"Unknown version {self.format}")
 
             q_linear = q_linear_module.from_linear(
                 linear=linear_layer,

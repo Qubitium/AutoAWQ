@@ -166,7 +166,7 @@ class BaseAWQForCausalLM(nn.Module):
             self.quant_config.w_bit,
             self.quant_config.q_group_size,
             self.quant_config.zero_point,
-            self.quant_config.version,
+            self.quant_config.format,
             calib_data,
             split,
             text_column,
@@ -418,7 +418,7 @@ class BaseAWQForCausalLM(nn.Module):
             self,
             model,
             quant_config,
-            quant_config.version,
+            quant_config.format,
             use_exllama=use_exllama,
             use_exllama_v2=use_exllama_v2,
         )
@@ -440,7 +440,7 @@ class BaseAWQForCausalLM(nn.Module):
         if fuse_layers:
             self.fuse_layers(model)
 
-        if quant_config.version == "marlin":
+        if quant_config.format == "marlin":
             model = marlin_post_init(model)
 
         elif use_exllama:

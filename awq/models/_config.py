@@ -1,29 +1,43 @@
 import os
 import json
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from dataclasses import dataclass, field
 from transformers.utils.hub import PushToHubMixin, cached_file
+
+_FORMATS = {"gemm", "gemv", "gemmv_fast", "marlin"}
+
+
+def _normalize_dict(original_cfg: Dict[str: Any]):
+    cfg = original_cfg.copy()
+    cfg["method"] = cfg.get("method", cfg.get("quant_method", "awq")).lower()
+    if cfg["method"] != "awq":
+        raise TypeError(f"Unsupported quant method: {cfg.method}")
+
+    cfg["format"] = cfg.get("format", cfg.get("version", "gemm")).lower()
+    if cfg["format"] not in _FORMATS:
+        raise TypeError(f"Unsupported quant format: {cfg.format}")
+
+    return cfg
 
 
 @dataclass
 class AwqConfig(PushToHubMixin):
-    quant_method: str = field(default="awq")
+    method: str = field(default="awq")
+    format: str = field(default="gemm")
     zero_point: bool = field(default=True)
     q_group_size: int = field(default=128)
     w_bit: int = field(default=4)
-    version: str = field(default="gemm")
+
     config_file_name = "config.json"
     modules_to_not_convert: Optional[List] = None
 
     @classmethod
-    def from_dict(cls, quant_config: Dict = {}):
-        if not quant_config:
-            quant_config = cls()
-        else:
-            quant_config = cls(**quant_config)
-            quant_config.version = quant_config.version.lower()
+    def from_dict(cls, cfg: Dict[str: Any] = None):
+        if cfg is None:
+            return cls()
 
-        return quant_config
+        _normalize_dict(cfg)
+        return cls(**cfg)
 
     @classmethod
     def from_pretrained(cls, save_dir: str, **kwargs):
@@ -61,10 +75,11 @@ class AwqConfig(PushToHubMixin):
             with open(resolved_config_file, "r", encoding="utf-8") as file:
                 loaded_config = json.loads(file.read())
 
-            quant_config = loaded_config.get("quantization_config")
+            cfg = loaded_config.get("quantization_config")
+            cfg = _normalize_dict(cfg)
 
-            if quant_config is not None:
-                awq_config = cls.from_transformers_dict(cls, quant_config)
+            if cfg is not None:
+                awq_config = cls.from_transformers_dict(cls, cfg)
                 quant_config = cls(**awq_config)
 
         if quant_config is None:
@@ -74,29 +89,22 @@ class AwqConfig(PushToHubMixin):
 
     def to_dict(self):
         return {
+            "method": self.method,
+            "format": self.format,
             "zero_point": self.zero_point,
             "q_group_size": self.q_group_size,
             "w_bit": self.w_bit,
-            "version": self.version,
             "modules_to_not_convert": self.modules_to_not_convert,
         }
 
-    def to_transformers_dict(self):
-        return {
-            "quant_method": self.quant_method,
-            "zero_point": self.zero_point,
-            "group_size": self.q_group_size,
-            "bits": self.w_bit,
-            "version": self.version.lower(),
-            "modules_to_not_convert": self.modules_to_not_convert,
-        }
+    def from_transformers_dict(self, cfg: Dict):
+        cfg = _normalize_dict(cfg)
 
-    def from_transformers_dict(self, transformers_dict: Dict):
         return {
-            "quant_method": transformers_dict.get("quant_method"),
-            "zero_point": transformers_dict.get("zero_point"),
-            "q_group_size": transformers_dict.get("group_size"),
-            "w_bit": transformers_dict.get("bits"),
-            "version": transformers_dict.get("version"),
-            "modules_to_not_convert": transformers_dict.get("modules_to_not_convert"),
+            "method": cfg.get("method"),
+            "format": cfg.get("format"),
+            "zero_point": cfg.get("zero_point"),
+            "q_group_size": cfg.get("group_size"),
+            "w_bit": cfg.get("bits"),
+            "modules_to_not_convert": cfg.get("modules_to_not_convert"),
         }

@@ -137,9 +137,9 @@ def run_round(generator, model_path, quant_file, n_generate, input_ids, batch_si
         decode_tokens_per_second = 'OOM'
     
     if pretrained:
-        version = "FP16"
+        format = "FP16"
     else:
-        version = model.quant_config.version
+        format = model.quant_config.format
 
     return {
         "Batch Size": batch_size,
@@ -148,7 +148,7 @@ def run_round(generator, model_path, quant_file, n_generate, input_ids, batch_si
         "Prefill tokens/s": prefill_tokens_per_second,
         "Decode tokens/s": decode_tokens_per_second,
         "Memory (VRAM)": f"{total_memory_used:.2f} GB ({memory_pct:.2f}%)"
-    }, version
+    }, format
 
 def main(args):
     rounds = [
@@ -175,7 +175,7 @@ def main(args):
     for settings in rounds:
         input_ids = torch.randint(0, tokenizer.vocab_size, (args.batch_size, settings["context"])).cuda()
 
-        stats, model_version = run_round(
+        stats, model_format = run_round(
             generator,
             args.model_path,
             args.quant_file,
@@ -194,7 +194,7 @@ def main(args):
     df = pd.DataFrame(all_stats)
     print('GPU:', torch.cuda.get_device_name())
     print('Model:', args.model_path)
-    print('Version:', model_version)
+    print('Format:', model_format)
     print(df.to_markdown(index=False))
 
 if __name__ == "__main__":
